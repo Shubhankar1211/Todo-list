@@ -35,7 +35,7 @@ button.addEventListener('click',function(){
 
 })
 function renderTask(task){
-    console.log(task)
+    console.log(task.text)
 }
 
 
