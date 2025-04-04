@@ -30,29 +30,39 @@ button.addEventListener('click',function(){
 
    tasks.push(newTask)
    saveTasks();
+   renderTask(newTask)
    todoInput.value = ""; // clear input
    console.log(tasks);
 
 })
 
-// this is how we render are texts
-function renderTask(task){
-   const li = document.createAttribute('li');
-   li.setAttribute("data-id",task.id);
-   if(task.completed) li.classList.add("completed")
-   li.innerHtml = `<span>${task.text}</span> <button>delete</button>`;
 
+// Function to render a task
+function renderTask(task) {
+    const li = document.createElement("li"); // ✅ Corrected
+    li.setAttribute("data-id", task.id);
+    if (task.completed) li.classList.add("completed");
 
+    // ✅ Corrected innerHTML property
+    li.innerHTML = `<span>${task.text}</span> <button>Delete</button>`;
 
-   li.addEventListener('click',(e)=>{
-    if(e.target.tagName === "BUTTON") return;
-    task.completed =!task.completed;
-    li.classList.toggle("completed");
-    saveTasks();
-   })
+    // ✅ Add event listener to toggle task completion
+    li.addEventListener("click", (e) => {
+        if (e.target.tagName === "BUTTON") return;
+        task.completed = !task.completed;
+        li.classList.toggle("completed");
+        saveTasks();
+    });
 
-   
-   todoList.appendChild(li);
+    // ✅ Attach delete button event after innerHTML is set
+    li.querySelector("button").addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevent toggle from firing
+        tasks = tasks.filter((t) => t.id !== task.id);
+        li.remove();
+        saveTasks();
+    });
+
+    todoList.appendChild(li);
 }
 
 
