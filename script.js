@@ -361,6 +361,7 @@ button.addEventListener('click',function(){
 })
 
 
+
 // Function to render a task
 function renderTask(task) {
     const li = document.createElement("li"); // ✅ Corrected
