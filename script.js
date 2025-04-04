@@ -34,8 +34,19 @@ button.addEventListener('click',function(){
    console.log(tasks);
 
 })
+
+// this is how we render are texts
 function renderTask(task){
-    console.log(task.text)
+   const li = document.createAttribute('li');
+   li.setAttribute("data-id",task.id);
+   if(task.completed) li.classList.add("completed")
+   li.innerHtml = `<span>${task.text}</span> <button>delete</button>`;
+
+
+
+   
+
+   todoList.appendChild(li);
 }
 
 
