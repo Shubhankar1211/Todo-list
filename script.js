@@ -44,8 +44,14 @@ function renderTask(task){
 
 
 
-   
+   li.addEventListener('click',(e)=>{
+    if(e.target.tagName === "BUTTON") return;
+    task.completed =!task.completed;
+    li.classList.toggle("completed");
+    saveTasks();
+   })
 
+   
    todoList.appendChild(li);
 }
 
