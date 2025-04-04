@@ -1,5 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Grab all necessary elements
+    // ===== OVERVIEW =====
+    // This is a Todo application built with vanilla JavaScript
+    // It uses localStorage for data persistence and features task filtering,
+    // editing, deletion, completion toggling, and counting of remaining tasks
+    // The application follows a modular approach with separate functions 
+    // for each responsibility, making the code easier to maintain
+
+    // ===== DOM ELEMENTS =====
+    // Grab all necessary elements from the DOM for manipulation
     const todoInput = document.querySelector('#todo-input');
     const addTaskBtn = document.querySelector('#add-task-btn');
     const todoList = document.querySelector('#todo-list');
@@ -7,46 +15,54 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearCompletedBtn = document.querySelector('#clear-completed');
     const itemsLeftSpan = document.querySelector('#items-left');
     
-    // Initialize tasks from localStorage
+    // ===== STATE MANAGEMENT =====
+    // Initialize tasks array from localStorage or empty array if none exists
+    // This is the central data structure that holds all task information
     let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
     
-    // Initialize the app
+    // ===== INITIALIZATION =====
+    // Initialize the app by rendering tasks and setting up event listeners
     init();
     
     function init() {
-        // Render existing tasks
+        // Render existing tasks from localStorage on page load
         renderAllTasks();
         updateItemsCount();
         
-        // Set up event listeners
+        // ===== EVENT LISTENERS SETUP =====
+        // Set up event listeners for adding tasks (button click and Enter key)
         addTaskBtn.addEventListener('click', addTask);
         todoInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') addTask();
         });
         
+        // Set up event listener for clearing completed tasks
         clearCompletedBtn.addEventListener('click', clearCompleted);
         
-        // Set up filter buttons
+        // Set up filter buttons for showing all/active/completed tasks
+        // Uses data attributes (data-filter) to determine which filter to apply
         filterBtns.forEach(btn => {
             btn.addEventListener('click', () => {
-                // Remove active class from all buttons
+                // Visual feedback - highlight active filter button
                 filterBtns.forEach(b => b.classList.remove('active'));
-                // Add active class to clicked button
                 btn.classList.add('active');
                 
-                // Apply filter
+                // Apply the selected filter using the data-filter attribute
                 applyFilter(btn.dataset.filter);
             });
         });
     }
     
-    // Function to add a new task
+    // ===== TASK CREATION =====
+    // Function to add a new task to the list
     function addTask() {
+        // Get and validate the input text
         const taskText = todoInput.value.trim();
-        if (taskText === "") return;
+        if (taskText === "") return; // Don't add empty tasks
         
+        // Create a new task object with unique ID, text, completion status, and date
         const newTask = {
-            id: Date.now(),
+            id: Date.now(), // Using timestamp as a simple unique ID
             text: taskText,
             completed: false,
             date: new Date().toLocaleDateString('en-US', {
@@ -56,29 +72,34 @@ document.addEventListener('DOMContentLoaded', () => {
             })
         };
         
-        // Add task to array
+        // Add task to the tasks array
         tasks.push(newTask);
         
-        // Save and render
+        // Save to localStorage and update the UI
         saveTasks();
         renderTask(newTask);
         updateItemsCount();
         
-        // Clear input
+        // Reset input field for better UX
         todoInput.value = "";
         todoInput.focus();
     }
     
-    // Function to render a single task
+    // ===== TASK RENDERING =====
+    // Function to render a single task in the UI
     function renderTask(task) {
+        // Create list item for the task
         const li = document.createElement('li');
         li.className = 'todo-item';
-        li.dataset.id = task.id;
+        li.dataset.id = task.id; // Store task ID for later manipulation
         
+        // Add completed class if task is already completed
         if (task.completed) {
             li.classList.add('completed');
         }
         
+        // Set the HTML content of the task item
+        // Including checkbox, task text, date, edit and delete buttons
         li.innerHTML = `
             <div class="checkbox${task.completed ? ' checked' : ''}"></div>
             <div class="todo-content">
@@ -91,34 +112,37 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         
-        // Toggle completion status
+        // ===== TASK INTERACTION HANDLERS =====
+        // Set up event listener for toggling task completion
         const checkbox = li.querySelector('.checkbox');
         checkbox.addEventListener('click', () => {
             toggleTaskCompletion(task.id);
         });
         
-        // Delete task
+        // Set up event listener for deleting task
         const deleteBtn = li.querySelector('.delete-btn');
         deleteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // Prevent event bubbling
             deleteTask(task.id);
         });
         
-        // Edit task
+        // Set up event listener for editing task
         const editBtn = li.querySelector('.edit-btn');
         editBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // Prevent event bubbling
             editTask(li, task);
         });
         
+        // Add the task to the todo list
         todoList.appendChild(li);
     }
     
-    // Function to render all tasks
+    // Function to render all tasks from the tasks array
     function renderAllTasks() {
-        // Clear existing list
+        // Clear existing list to prevent duplicates
         todoList.innerHTML = '';
         
+        // Show empty state message if no tasks exist
         if (tasks.length === 0) {
             const emptyState = document.createElement('div');
             emptyState.className = 'empty-state';
@@ -127,57 +151,63 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        // Render each task
+        // Render each task in the tasks array
         tasks.forEach(task => renderTask(task));
     }
     
-    // Toggle task completion
+    // ===== TASK OPERATIONS =====
+    // Toggle task completion status
     function toggleTaskCompletion(id) {
+        // Update task completion status in the tasks array
         tasks = tasks.map(task => {
             if (task.id === id) {
-                task.completed = !task.completed;
+                task.completed = !task.completed; // Toggle the completed status
             }
             return task;
         });
         
-        // Update UI
+        // Update UI to reflect the changed status
         const taskElement = document.querySelector(`[data-id="${id}"]`);
         taskElement.classList.toggle('completed');
         taskElement.querySelector('.checkbox').classList.toggle('checked');
         
+        // Save changes and update items count
         saveTasks();
         updateItemsCount();
     }
     
-    // Delete task
+    // Delete a task
     function deleteTask(id) {
-        // Remove from array
+        // Remove task from tasks array
         tasks = tasks.filter(task => task.id !== id);
         
-        // Remove from DOM with animation
+        // Remove from DOM with animation for better UX
         const taskElement = document.querySelector(`[data-id="${id}"]`);
         taskElement.style.opacity = '0';
         taskElement.style.transform = 'translateX(30px)';
         
+        // Wait for animation to complete before removing element
         setTimeout(() => {
             taskElement.remove();
             if (tasks.length === 0) renderAllTasks(); // Show empty state if needed
             updateItemsCount();
         }, 300);
         
+        // Save changes to localStorage
         saveTasks();
     }
     
-    // Edit task
+    // Edit task text
     function editTask(li, task) {
         const todoText = li.querySelector('.todo-text');
         const currentText = todoText.textContent;
         
-        // Create input for editing
+        // Create input field for editing with current task text
         const input = document.createElement('input');
         input.type = 'text';
         input.value = currentText;
         input.className = 'edit-input';
+        // Style input to match the design
         input.style.width = '100%';
         input.style.padding = '5px';
         input.style.border = `2px solid var(--primary-light)`;
@@ -185,17 +215,17 @@ document.addEventListener('DOMContentLoaded', () => {
         input.style.fontSize = '1rem';
         input.style.fontFamily = 'inherit';
         
-        // Replace text with input
+        // Replace text with input for editing
         todoText.style.display = 'none';
         todoText.parentNode.insertBefore(input, todoText);
         input.focus();
-        input.setSelectionRange(0, input.value.length);
+        input.setSelectionRange(0, input.value.length); // Select all text for convenience
         
-        // Function to save edit
+        // Function to save the edited text
         const saveEdit = () => {
             const newText = input.value.trim();
             if (newText !== '') {
-                // Update task in array
+                // Update task text in the tasks array
                 tasks = tasks.map(t => {
                     if (t.id === task.id) {
                         t.text = newText;
@@ -203,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return t;
                 });
                 
-                // Update DOM
+                // Update DOM with new text
                 todoText.textContent = newText;
                 saveTasks();
             }
@@ -213,21 +243,23 @@ document.addEventListener('DOMContentLoaded', () => {
             input.remove();
         };
         
-        // Event listeners for edit input
+        // Set up event listeners for saving on blur and Enter key
         input.addEventListener('blur', saveEdit);
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') saveEdit();
         });
     }
     
-    // Clear completed tasks
+    // ===== BATCH OPERATIONS =====
+    // Clear all completed tasks
     function clearCompleted() {
+        // Get IDs of all completed tasks
         const completedIds = tasks.filter(task => task.completed).map(task => task.id);
         
-        // Remove from array
+        // Remove completed tasks from tasks array
         tasks = tasks.filter(task => !task.completed);
         
-        // Remove from DOM with animation
+        // Remove completed tasks from DOM with animation
         completedIds.forEach(id => {
             const taskElement = document.querySelector(`[data-id="${id}"]`);
             taskElement.style.opacity = '0';
@@ -238,22 +270,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 300);
         });
         
+        // Update empty state and counter after animations
         setTimeout(() => {
             if (tasks.length === 0) renderAllTasks(); // Show empty state if needed
             updateItemsCount();
         }, 350);
         
+        // Save changes to localStorage
         saveTasks();
     }
     
-    // Apply filter
+    // ===== FILTERING =====
+    // Apply filter to show all, active, or completed tasks
     function applyFilter(filter) {
         const taskItems = document.querySelectorAll('.todo-item');
         
+        // Show/hide tasks based on the selected filter
         taskItems.forEach(item => {
             switch (filter) {
                 case 'all':
-                    item.style.display = 'flex';
+                    item.style.display = 'flex'; // Show all tasks
                     break;
                 case 'active':
                     item.style.display = item.classList.contains('completed') ? 'none' : 'flex';
@@ -265,27 +301,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Update items count
+    // ===== UTILITIES =====
+    // Update the count of remaining items
     function updateItemsCount() {
         const activeCount = tasks.filter(task => !task.completed).length;
+        // Update the text with proper pluralization
         itemsLeftSpan.textContent = `${activeCount} item${activeCount !== 1 ? 's' : ''} left`;
     }
     
-    // Save tasks to localStorage
+    // ===== DATA PERSISTENCE =====
+    // Save tasks to localStorage for persistence across page reloads
     function saveTasks() {
         localStorage.setItem('tasks', JSON.stringify(tasks));
     }
 });
-
-
-
-
-
-
-
-
-
-
 
 
 
