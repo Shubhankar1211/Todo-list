@@ -16,6 +16,3 @@ JavaScript – For dynamic interactions
 🎯 Usage
 Type a task in the input field and press Add.
 Click the delete button to remove a task.
-
-📌 Contributing
-Contributions are welcome! Feel free to fork this repository, make improvements, and submit a pull request.
